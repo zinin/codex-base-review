@@ -2,7 +2,9 @@
 
 Claude Code / Grok plugin: Codex `/review` → "Review against a base branch (PR Style)".
 
-The orchestrator does not review. It resolves the merge-base, then spawns a child with Codex's review rubric and user prompt. The child inspects `git diff <merge-base>` and returns JSON findings.
+The orchestrator does not review. It resolves the merge-base, then spawns a child with Codex's
+review rubric and user prompt — both taken verbatim from the Codex CLI sources, see
+[Provenance](#provenance). The child inspects `git diff <merge-base>` and returns JSON findings.
 
 ## Install
 
@@ -44,19 +46,33 @@ Effort is not an argument. The child inherits the session `/effort`; Grok then c
 
 ## What it is not
 
-- Uncommitted-only review, single-commit review, or posting a GitHub review (use [claude-mesh](https://github.com/zinin/claude-mesh) / [herdr-review](https://github.com/zinin/herdr-review) for those).
+- Uncommitted-only review, single-commit review, or posting a GitHub review.
 - Grok's bundled `/review` — different rubric and output.
+
+## Provenance
+
+The prompt is not original work. It is lifted from the OpenAI Codex CLI
+([openai/codex](https://github.com/openai/codex), Apache-2.0), so that a review here returns
+what Codex's own `/review` would return:
+
+| This repo | Codex CLI source |
+|---|---|
+| `skills/codex-base-review/references/rubric.md` | `codex-rs/prompts/templates/review/rubric.md` — byte-identical copy |
+| `USER_PROMPT` / `USER_PROMPT_BACKUP` in `scripts/merge_base.py` | `BASE_BRANCH_PROMPT` / `BASE_BRANCH_PROMPT_BACKUP` in `codex-rs/prompts/src/review_request.rs` |
+| `merge_base_with_head()` in `scripts/merge_base.py` | `merge_base_with_head()` in `codex-rs/git-utils/src/branch.rs` — prefer the upstream ref when it is ahead of the local branch |
+
+Checked against Codex CLI at commit `fcf05456bb`. Do not paraphrase or "improve" the rubric:
+the whole point is to keep Codex's wording, its priority tags (`[P0]`…`[P3]`) and its JSON
+output schema.
+
+Not from Codex: base-branch auto-detection. The Codex TUI asks which branch to compare
+against; this plugin guesses, and stops instead of guessing when the resulting diff is empty.
+
+The plugin's own code is MIT (`LICENSE`); the vendored rubric remains under Codex's
+Apache-2.0 license.
 
 ## Dependencies
 
 - `git`
 - `python3` (stdlib only; `scripts/merge_base.py`)
 - `gh` optional, used only to read an open PR's base (3s timeout)
-
-## See also
-
-- [claude-mesh](https://github.com/zinin/claude-mesh) — multi-model code review, alt-Claude execution, session helpers
-- [herdr-review](https://github.com/zinin/herdr-review) — multi-agent review inside herdr
-- [claude-forge](https://github.com/zinin/claude-forge) — build/test/lint delegation and dependency updates
-- [claude-atlassian](https://github.com/zinin/claude-atlassian) — Jira/Confluence analysis and bug investigation
-- [claude-prd](https://github.com/zinin/claude-prd) — idea to PRD to tasks
