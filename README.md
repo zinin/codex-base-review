@@ -69,7 +69,11 @@ Not from Codex: base-branch auto-detection. The Codex TUI asks which branch to c
 against; this plugin guesses, and stops instead of guessing when the resulting diff is empty.
 
 The plugin's own code is MIT (`LICENSE`); the vendored rubric remains under Codex's
-Apache-2.0 license.
+Apache-2.0 license. `NOTICE` lists exactly what was taken and what was changed;
+`third_party/codex/LICENSE` carries the Apache-2.0 text.
+
+This is an unofficial plugin: not affiliated with, endorsed by, or sponsored by OpenAI.
+"Codex" is used only to describe the review it reproduces.
 
 ## Dependencies
 
