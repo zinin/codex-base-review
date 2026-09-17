@@ -1,0 +1,10 @@
+{
+  "name": "codex-base-review",
+  "version": "0.1.0",
+  "displayName": "Codex Base Review",
+  "description": "Codex-style PR review against the branch this one was cut from: merge-base diff, defect-first rubric, JSON findings",
+  "author": { "name": "Alexander V. Zinin", "email": "azinin@gmail.com", "url": "https://github.com/zinin" },
+  "repository": "https://github.com/zinin/codex-base-review",
+  "license": "MIT",
+  "keywords": ["claude-code", "grok", "codex", "code-review", "merge-base", "pr-review"]
+}
