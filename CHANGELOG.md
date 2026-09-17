@@ -14,3 +14,10 @@ All notable changes to codex-base-review will be documented here.
 - `scripts/merge_base.py` — Codex `merge_base_with_head` (prefer upstream when it is
   ahead) plus auto-detect of the branch this one was cut from.
 - `references/rubric.md` — verbatim copy of Codex `review/rubric.md`.
+
+### Fixed
+- Auto-detect no longer treats `origin/<current-branch>` from reflog (`Created from
+  refs/remotes/origin/<same>`) as the PR base. That is the tracking branch; the helper
+  skips same-name refs and prefers `origin/HEAD` when that range is non-empty.
+- Helper reports `empty: true` when `git diff <merge-base>` has no tracked changes.
+  The orchestrator must not spawn a reviewer for an empty range.

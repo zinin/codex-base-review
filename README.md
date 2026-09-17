@@ -37,6 +37,8 @@ Plugin-qualified name, if the bare command is taken: `/codex-base-review:codex-b
 | two tokens | `model` then `base-branch` |
 
 Auto-detect order: GitHub PR base → reflog "cut from" → `origin/HEAD` → nearest local fork.
+Same-name tracking refs (`origin/<current-branch>`) are skipped. If `git diff <merge-base>`
+is empty, the skill stops and does not spawn a reviewer.
 
 Effort is not an argument. The child inherits the session `/effort`; Grok then clamps it to the chosen model's `reasoning_efforts`.
 

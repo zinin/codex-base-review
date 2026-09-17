@@ -104,6 +104,33 @@ def gh_pr_base(repo: Path) -> str | None:
     return name or None
 
 
+def ref_basename(ref: str) -> str:
+    name = ref.strip()
+    prefixes = (
+        "refs/heads/",
+        "refs/remotes/origin/",
+        "refs/remotes/",
+        "origin/",
+    )
+    changed = True
+    while changed:
+        changed = False
+        for prefix in prefixes:
+            if name.startswith(prefix):
+                name = name[len(prefix) :]
+                changed = True
+    return name
+
+
+def same_branch_name(left: str, right: str) -> bool:
+    return bool(left) and bool(right) and ref_basename(left) == ref_basename(right)
+
+
+def diff_is_empty(repo: Path, merge_base_sha: str) -> bool:
+    diff = git(repo, ["diff", merge_base_sha])
+    return not diff
+
+
 def reflog_parent(repo: Path, branch: str) -> str | None:
     log = git(repo, ["reflog", "show", branch])
     if not log:
@@ -122,7 +149,7 @@ def reflog_parent(repo: Path, branch: str) -> str | None:
     if parent is None:
         return None
     parent = parent.removeprefix("refs/heads/").removeprefix("refs/remotes/")
-    if parent == branch:
+    if same_branch_name(parent, branch):
         return None
     if resolve_ref(repo, parent) or resolve_ref(repo, f"origin/{parent}"):
         return parent
@@ -177,22 +204,37 @@ def closest_cut_parent(repo: Path, current: str) -> str | None:
 
 def detect_base_branch(repo: Path) -> tuple[str, str]:
     current = current_branch(repo) or ""
+    candidates: list[tuple[str, str]] = []
+
     pr_base = gh_pr_base(repo)
-    if pr_base and pr_base != current:
-        return pr_base, "github-pr"
+    if pr_base and not same_branch_name(pr_base, current):
+        candidates.append((pr_base, "github-pr"))
     if current:
         parent = reflog_parent(repo, current)
-        if parent:
-            return parent, "reflog"
+        if parent and not same_branch_name(parent, current):
+            candidates.append((parent, "reflog"))
     remote_head = origin_head(repo)
     if remote_head:
-        # Even when we are on that branch locally, compare against the remote
-        # default (unpushed commits on main, or a stale local main).
-        return remote_head, "origin-head"
+        candidates.append((remote_head, "origin-head"))
     if current:
         closest = closest_cut_parent(repo, current)
-        if closest:
-            return closest, "nearest-fork"
+        if closest and not same_branch_name(closest, current):
+            candidates.append((closest, "nearest-fork"))
+
+    empty_fallback: tuple[str, str] | None = None
+    for branch, detection in candidates:
+        if resolve_ref(repo, branch) is None:
+            continue
+        merge_base = merge_base_with_head(repo, branch)
+        if not merge_base:
+            continue
+        if not diff_is_empty(repo, merge_base):
+            return branch, detection
+        if empty_fallback is None:
+            empty_fallback = (branch, detection)
+
+    if empty_fallback:
+        return empty_fallback
     raise SystemExit(
         "could not auto-detect the base branch; pass it explicitly: "
         "/codex-base-review [model] <base-branch>"
@@ -234,10 +276,12 @@ def main() -> int:
     else:
         base_branch, detection = detect_base_branch(repo)
     merge_base_sha = merge_base_with_head(repo, base_branch)
+    empty = bool(merge_base_sha) and diff_is_empty(repo, merge_base_sha)
     payload = {
         "base_branch": base_branch,
         "detection": detection,
         "merge_base_sha": merge_base_sha,
+        "empty": empty,
         "user_prompt": build_user_prompt(base_branch, merge_base_sha),
     }
     json.dump(payload, sys.stdout, indent=2)

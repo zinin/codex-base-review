@@ -36,7 +36,9 @@ python3 <SKILL_DIR>/scripts/merge_base.py
 python3 <SKILL_DIR>/scripts/merge_base.py --branch <base-branch>
 ```
 
-Use `--branch` only when the user named a base. Read JSON stdout: `base_branch`, `merge_base_sha`, `user_prompt`, `detection`. If the helper exits non-zero, print stderr and stop.
+Use `--branch` only when the user named a base. Read JSON stdout: `base_branch`, `merge_base_sha`, `user_prompt`, `detection`, `empty`. If the helper exits non-zero, print stderr and stop.
+
+If `empty` is true, **do not spawn a reviewer**. Report the base, detection, and SHA, and that `git diff <sha>` has no tracked changes. Do not invent a range from `HEAD^`, the previous merge, or another branch. Suggest passing a base explicitly (often the default remote, `origin/HEAD`). Stop.
 
 3. Read `<SKILL_DIR>/references/rubric.md` in full. That file is the child's system prompt. Do not summarize it, rewrite it, or paste a different rubric.
 
@@ -85,3 +87,5 @@ Do not fix the code. Do not post a GitHub review.
 | "Markdown is clearer than JSON" | The child emits the rubric schema. You format after parse. |
 | "Missing tests / commit message are findings" | The rubric drops non-blocking nits. Flag only defects the author would fix. |
 | "I'll call /review" | Different rubric, different output. This skill replaces that path. |
+| "Reflog says Created from origin/<this-branch>" | That is the tracking branch, not the PR base. The helper skips it and tries `origin/HEAD`. |
+| "Empty diff, I'll review HEAD^ / the last merge" | Empty means stop. Do not pick a substitute range. |
