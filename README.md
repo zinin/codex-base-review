@@ -19,6 +19,8 @@ In Grok, add the same marketplace, then:
 grok plugin install codex-base-review --trust
 ```
 
+In Codex: `codex plugin marketplace add zinin/agent-plugins`, then `codex plugin add codex-base-review@zinin`; run it as `$codex-base-review:codex-base-review master` (the smoke, `codex exec` 0.157, reviewed a branch against master this way).
+
 If you previously copied the skill into `~/.agents/skills/codex-base-review` (or the `~/.claude/skills` / `~/.grok/skills` symlinks), remove that copy after installing the plugin so only one `codex-base-review` is loaded.
 
 ## Usage
