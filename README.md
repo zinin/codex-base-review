@@ -9,7 +9,7 @@ review rubric and user prompt — both taken verbatim from the Codex CLI sources
 ## Install
 
 ```
-/plugin marketplace add zinin/claude-plugins
+/plugin marketplace add zinin/agent-plugins
 /plugin install codex-base-review@zinin
 ```
 
