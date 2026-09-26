@@ -1,6 +1,6 @@
 # codex-base-review
 
-Claude Code / Grok plugin: Codex `/review` → "Review against a base branch (PR Style)".
+Claude Code / Grok / Codex plugin: Codex `/review` → "Review against a base branch (PR Style)".
 
 The orchestrator does not review. It resolves the merge-base, then spawns a child with Codex's
 review rubric and user prompt — both taken verbatim from the Codex CLI sources, see
